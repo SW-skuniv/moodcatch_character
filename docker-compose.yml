@@ -1,0 +1,28 @@
+services:
+
+  # DB와 Redis는 새로 띄우지 않고 sw-back의 컨테이너를 같이 쓴다.
+  # - DB: project_db 컨테이너 안의 character_db (계정 character_user)
+  # - Redis: project_redis 컨테이너
+  app:
+    build: .
+    container_name: moodcatch_character_app
+    # 내부 전용: 호스트에 포트를 열지 않는다.
+    # sw-back은 같은 네트워크에서 http://moodcatch_character_app:8081 로 호출한다.
+    # 컨테이너를 호스트에서 직접 디버깅해야 할 때만 아래 두 줄의 주석을 잠시 푼다 (127.0.0.1에만 열림).
+    # ports:
+    #   - "127.0.0.1:8081:8081"
+    env_file:
+      - .env
+    environment:
+      DB_URL: postgresql://project_db:5432/character_db
+      DB_USERNAME: character_user
+      DB_PASSWORD: ${CHARACTER_DB_PASSWORD}
+      REDIS_URL: redis://project_redis:6379
+    networks:
+      - sw-back
+    restart: always
+
+networks:
+  sw-back:
+    name: sw-back_default
+    external: true
